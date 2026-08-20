@@ -1,0 +1,135 @@
+// =====================================================
+// ATIVIDADE 4 — Diagrama de Blocos e Routh-Hurwitz
+// Felipe Carrancho da Fonseca
+// Parâmetros: m=8, C=2, K=0.5
+// Controlador proporcional: Kc = m/3 = 8/3 ≈ 2.667
+// Sensor 1ª ordem:          Ks = 1,  Ts = m/6 = 4/3 s
+// =====================================================
+
+clc;
+clear;
+
+// --- Parâmetros do sistema ---
+m        = 8;
+C        = 2;
+K_planta = 0.5;
+Kc       = m / 3;      // 2.6667
+Ks       = 1;
+Ts       = m / 6;      // 1.3333
+
+s = poly(0, 's');
+
+// =====================================================
+// a) Funções de transferência
+// =====================================================
+disp('=== a) Funções de Transferência ===');
+
+Gc = Kc;
+Gp = 1 / (m*s^2 + C*s + K_planta);
+H  = Ks / (Ts*s + 1);
+
+disp('Gc(s) — Controlador proporcional:');
+disp(['  Gc(s) = ' string(Kc)]);
+
+disp('Gp(s) — Planta (massa-mola-amortecedor):');
+disp('  Gp(s) = 1 / (8s² + 2s + 0.5)');
+
+disp('H(s) — Sensor de 1ª ordem:');
+disp(['  H(s) = 1 / (' string(Ts) 's + 1)']);
+
+// =====================================================
+// b) FT em Malha Fechada  C(s)/R(s)
+//
+//   C(s)/R(s) = Gc·Gp / (1 + Gc·Gp·H)
+//
+// Denominador = Den(Gp)·Den(H) + Kc·Ks
+//             = (ms²+Cs+K)(Ts·s+1) + Kc
+//
+// Coeficientes expandidos:
+//   a3 = m·Ts
+//   a2 = m + C·Ts
+//   a1 = C + K·Ts
+//   a0 = K + Kc
+//
+// Numerador = Kc·(Ts·s + 1)
+//   n1 = Kc·Ts
+//   n0 = Kc
+// =====================================================
+disp(' ');
+disp('=== b) FT em Malha Fechada C(s)/R(s) ===');
+
+a3 = m * Ts;
+a2 = m + C * Ts;
+a1 = C + K_planta * Ts;
+a0 = K_planta + Kc;
+n1 = Kc * Ts;
+n0 = Kc;
+
+Num_MF = n1*s + n0;
+Den_MF = a3*s^3 + a2*s^2 + a1*s + a0;
+
+FT_MF = syslin('c', Num_MF / Den_MF);
+disp(FT_MF);
+
+disp('Coeficientes do denominador:');
+disp(['  a3 = ' string(a3) '   (s³)']);
+disp(['  a2 = ' string(a2) '   (s²)']);
+disp(['  a1 = ' string(a1) '   (s¹)']);
+disp(['  a0 = ' string(a0) '   (s⁰)']);
+
+// =====================================================
+// c) Critério de Routh-Hurwitz (Kc = m/3)
+// =====================================================
+disp(' ');
+disp('=== c) Critério de Routh-Hurwitz com Kc = m/3 ===');
+
+pol_den = a3*s^3 + a2*s^2 + a1*s + a0;
+RH = routh_t(pol_den);
+
+disp('Matriz de Routh-Hurwitz:');
+disp(RH);
+
+// Verificação da 1ª coluna
+col1 = [RH(1,1); RH(2,1); RH(3,1); RH(4,1)];
+trocas = 0;
+for i = 2:length(col1)
+    if col1(i) * col1(i-1) < 0 then
+        trocas = trocas + 1;
+    end
+end
+
+disp(['1ª coluna: [' string(col1(1)) ', ' string(col1(2)) ', ' ...
+      string(col1(3)) ', ' string(col1(4)) ']']);
+disp(['Trocas de sinal: ' string(trocas)]);
+if trocas == 0 then
+    disp('=> Sistema ESTÁVEL');
+else
+    disp(['=> Sistema INSTÁVEL — ' string(trocas) ' raiz(es) no semiplano direito']);
+end
+
+// =====================================================
+// d) Routh com ganho genérico K — faixa de estabilidade
+//
+// Com Kc → K genérico: a0 = K_planta + K
+//
+// Linha s¹ da tabela RH:
+//   b1 = (a2·a1 − a3·a0) / a2
+//
+// Condição b1 > 0:
+//   a2·a1 > a3·(K_planta + K)
+//   K < (a2·a1 − K_planta·a3) / a3      [limite superior]
+//
+// Condição s⁰ > 0:
+//   K_planta + K > 0
+//   K > −K_planta                         [limite inferior]
+// =====================================================
+disp(' ');
+disp('=== d) Faixa de K para estabilidade ===');
+
+K_max = (a2*a1 - K_planta*a3) / a3;
+K_min = -K_planta;
+
+disp(['Condição s¹ > 0  =>  K < ' string(K_max)]);
+disp(['Condição s⁰ > 0  =>  K > ' string(K_min)]);
+disp(['Sistema estável para:  ' string(K_min) ' < K < ' string(K_max)]);
+disp(['Kc atual = m/3 = ' string(Kc) ' → está FORA da faixa → INSTÁVEL']);

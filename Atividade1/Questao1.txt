@@ -1,0 +1,82 @@
+// =====================================================
+// ATIVIDADE 1 - Modelagem com Equação Diferencial
+// Felipe Carrancho da Fonseca Rocha
+// Parâmetros: m=8, C=2, K=0.5
+// f(t) = 0 (força nula)
+// =====================================================
+
+clc;
+clear;
+
+// Parâmetros do sistema
+m = 8;
+C = 2;
+K = 0.5;
+
+// Tempo de simulação
+t = linspace(0, 200, 10000);
+dt = t(2) - t(1);
+
+// Função para simular usando Euler (EDO de 2ª ordem)
+// m*x'' + C*x' + K*x = f(t)
+// x'' = (f - C*x' - K*x) / m
+function y = simular(t, V0, X0, f_entrada)
+    n = length(t);
+    x = zeros(1, n);
+    v = zeros(1, n);
+    x(1) = X0;
+    v(1) = V0;
+    dt = t(2) - t(1);
+    for i = 1:n-1
+        a = (f_entrada - C*v(i) - K*x(i)) / m;
+        v(i+1) = v(i) + a * dt;
+        x(i+1) = x(i) + v(i) * dt;
+    end
+    y = x;
+endfunction
+
+// ---- Caso 1: V0 = m/2 = 4, X0 = 0 ----
+V0_1 = m/2;   // = 4
+X0_1 = 0;
+y1 = simular(t, V0_1, X0_1, 0);
+
+// ---- Caso 2: V0 = 0, X0 = m/4 = 2 ----
+V0_2 = 0;
+X0_2 = m/4;   // = 2
+y2 = simular(t, V0_2, X0_2, 0);
+
+// ---- Caso 3: V0 = m/3 ≈ 2.667, X0 = m/5 = 1.6 ----
+V0_3 = m/3;   // ≈ 2.667
+X0_3 = m/5;   // = 1.6
+y3 = simular(t, V0_3, X0_3, 0);
+
+// ---- Plotar os gráficos ----
+figure(1);
+clf();
+plot2d(t, y1, style=2);
+xtitle('Caso 1: V0 = 4 m/s, X0 = 0 m', 'Tempo (s)', 'Posição x(t) (m)');
+xgrid();
+
+figure(2);
+clf();
+plot2d(t, y2, style=5);
+xtitle('Caso 2: V0 = 0 m/s, X0 = 2 m', 'Tempo (s)', 'Posição x(t) (m)');
+xgrid();
+
+figure(3);
+clf();
+plot2d(t, y3, style=3);
+xtitle('Caso 3: V0 = 2.667 m/s, X0 = 1.6 m', 'Tempo (s)', 'Posição x(t) (m)');
+xgrid();
+
+// Gráfico comparativo
+figure(4);
+clf();
+plot2d(t, [y1' y2' y3'], style=[2 5 3]);
+legend(['Caso 1: V0=4, X0=0'; 'Caso 2: V0=0, X0=2'; 'Caso 3: V0=2.667, X0=1.6']);
+xtitle('Comparativo dos 3 Casos - Força Nula', 'Tempo (s)', 'Posição x(t) (m)');
+xgrid();
+
+disp('Simulação Atividade 1 concluída.');
+disp('Parâmetros do sistema: m=8, C=2, K=0.5');
+disp('Sistema subamortecido (zeta=0.5), oscila antes de estabilizar em 0.');

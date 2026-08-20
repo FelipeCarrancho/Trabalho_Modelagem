@@ -1,0 +1,23 @@
+// =====================================================
+// ATIVIDADE 9 - Diagrama de Nyquist
+// Felipe Carrancho da Fonseca Rocha
+// G(s) = 1 / (8s² + 2s + 0.5)
+// =====================================================
+
+clc;
+clear;
+
+m = 8; C = 2; K = 0.5;
+s = poly(0, 's');
+
+Num = 1;
+Den = m*s^2 + C*s + K;
+G = syslin('c', Num/Den);
+
+figure(1);
+clf();
+nyquist(G, 0.001, 100);
+xtitle('Diagrama de Nyquist - G(s) = 1/(8s²+2s+0.5)');
+
+disp('Sistema estável: o ponto -1+j0 NÃO é circundado pelo diagrama.');
+disp('Não há polos de G(s) no semiplano direito => Z = N + P = 0 + 0 = 0');

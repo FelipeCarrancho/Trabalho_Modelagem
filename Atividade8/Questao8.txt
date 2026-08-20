@@ -1,0 +1,49 @@
+// =====================================================
+// ATIVIDADE 8 - Diagrama de Bode
+// Felipe Carrancho da Fonseca Rocha
+// G(s) = 1 / (8s² + 2s + 0.5)
+// =====================================================
+
+clc;
+clear;
+
+m = 8; C = 2; K = 0.5;
+s = poly(0, 's');
+
+Gp = syslin('c', 1 / (m*s^2 + C*s + K));
+
+// Plotar diagrama de Bode
+scf(1); clf();
+bode(Gp, 0.001, 10);
+title('Diagrama de Bode - Gp(s) = 1/(8s^2+2s+0.5)');
+
+// Margens de ganho e fase
+[gm, pm, wgm, wpm] = p_margin(Gp);
+disp('=== Margens de Estabilidade ===');
+disp(['Margem de Ganho (MG) = ' string(20*log10(gm)) ' dB  em w = ' string(wgm) ' rad/s']);
+disp(['Margem de Fase  (MF) = ' string(pm) ' graus  em w = ' string(wpm) ' rad/s']);
+
+// Informações do sistema
+Kp   = 1/K;
+wn   = sqrt(K/m);
+zeta = C/(2*sqrt(m*K));
+wr   = wn*sqrt(1-2*zeta^2);
+Mr   = 1/(2*zeta*sqrt(1-zeta^2));
+
+disp(' ');
+disp('=== Parâmetros do Sistema ===');
+disp(['Ganho estacionario Kp = ' string(Kp) ' = ' string(20*log10(Kp)) ' dB']);
+disp(['Frequencia natural  wn = ' string(wn) ' rad/s']);
+disp(['Fator amortecimento z  = ' string(zeta)]);
+disp(['Frequencia ressonancia wr = ' string(wr) ' rad/s']);
+disp(['Pico de ressonancia Mr = ' string(Mr) ' = ' string(20*log10(Mr)) ' dB']);
+
+disp(' ');
+disp('=== Informações extraídas do Bode ===');
+disp('1. Ganho em regime (w->0): +6.02 dB (Kp=2)');
+disp('2. Decaimento: -40 dB/dec apos wn (sistema 2a ordem)');
+disp('3. Fase varia de 0 a -180 graus');
+disp('4. Fase = -90 graus em w = wn = 0.25 rad/s');
+disp('5. Pico de ressonancia em wr=0.177 rad/s (zeta=0.5 < 0.707)');
+disp('6. Margem de fase positiva -> sistema estavel em MA');
+disp('7. Margem de ganho infinita -> nao ha cruzamento de -180 graus');

@@ -1,0 +1,31 @@
+// =====================================================
+// ATIVIDADE 7 - Lugar Geometrico das Raizes (LGR)
+// Felipe Carrancho da Fonseca Rocha
+// G(s) = 1 / (8s² + 2s + 0.5)
+// =====================================================
+
+clc;
+clear;
+
+m = 8; C = 2; K = 0.5;
+s = poly(0, 's');
+
+Gp = syslin('c', 1 / (m*s^2 + C*s + K));
+
+scf(1); clf();
+evans(Gp, 10);
+title('Lugar Geometrico das Raizes - Gp(s) = 1/(8s^2+2s+0.5)');
+xlabel('Eixo real');
+ylabel('Eixo imaginario');
+xgrid();
+replot([-0.5, -1, 0.2, 1]);
+
+// Ganho critico e ponto de cruzamento do eixo imaginario
+[Ki, s_i] = kpure(Gp);
+disp(['Ganho critico (Kcr): Ki = ' string(Ki)]);
+disp(['Cruzamento eixo imag: s = +/- ' string(abs(imag(s_i(1)))) 'j']);
+plot([real(s_i(1)) real(s_i(1))], [imag(s_i(1)) -imag(s_i(1))], '*r', 'markersize', 10);
+
+// Ganho de bifurcacao
+[Kr, s_r] = krac2(Gp);
+disp(['Ganho de bifurcacao: Kr = ' string(Kr)]);

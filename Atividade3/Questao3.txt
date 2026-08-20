@@ -1,0 +1,42 @@
+// =====================================================
+// ATIVIDADE 3 - Função de Transferência
+// Felipe Carrancho da Fonseca Rocha 
+// m=8, C=2, K=0.5
+// G(s) = 1 / (8s² + 2s + 0.5)
+// =====================================================
+
+clc;
+clear;
+
+// Parâmetros
+m = 8;
+C = 2;
+K = 0.5;
+
+s = poly(0, 's');
+
+// Denominador da FT: m*s² + C*s + K
+Den = m*s^2 + C*s + K;
+Num = 1;
+
+// Função de transferência
+G = syslin('c', Num/Den);
+disp('Função de Transferência G(s):');
+disp(G);
+
+// Raízes (polos)
+polos = roots(Den);
+disp('Polos da função de transferência:');
+disp(polos);
+
+// Parâmetros típicos do sistema de 2ª ordem
+Kp = 1/K;
+tau = sqrt(m/K);
+wn  = 1/tau;
+zeta = C / (2 * K * tau);
+
+disp('--- Parâmetros Típicos ---');
+disp(['Kp (ganho estacionário) = ' string(Kp)]);
+disp(['τ  (constante de tempo) = ' string(tau) ' s']);
+disp(['ωn (frequência natural) = ' string(wn) ' rad/s']);
+disp(['ζ  (fator amortecimento)= ' string(zeta)]);

@@ -1,0 +1,642 @@
+\documentclass[brazilian,landscape,xcolor=dvipsnames,aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage{ragged2e}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{spy,calc,arrows.meta,positioning}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{tikzpagenodes}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+
+\graphicspath{{prism-uploads/}{uploads/}}
+\usepackage{prism-uploads/UERJpresentation}
+
+\newcommand{\event}{Modelagem e Controle de Sistemas}
+\newcommand{\eventdate}{Junho de 2026}
+\newcommand{\mytitle}{Modelagem e Controle do Sistema Massa-Mola-Amortecedor}
+
+\author[\scriptsize Felipe Carrancho]
+{
+{\small\textbf{Felipe Carrancho da Fonseca Rocha}}
+}
+
+\institute[UERJ]{
+  \begin{minipage}{\textwidth}
+    \centering
+    {\small Instituto Politécnico do Rio de Janeiro\\
+    Engenharia de Computação -- Universidade do Estado do Rio de Janeiro\\
+    Disciplina: Modelagem e Controle de Sistemas\\
+    Professor: Prof. Joel Sánchez Domínguez}
+  \end{minipage}
+  
+  \begin{minipage}{\textwidth}
+    \vspace{1em}
+    \centering
+    \includegraphics[height=3.6em]{Logo-UERJ.png}
+  \end{minipage}
+}
+
+\renewcommand{\includelogo}{\begin{tikzpicture}[remember picture,overlay,shift={(current page.north east)}]
+\node[anchor=north east,xshift=-0mm,yshift=-4.0mm]{\includegraphics[width=15mm]{Logo-UERJ-Square-round.png}};
+\end{tikzpicture}}
+
+\setbeamerfont{caption}{size=\scriptsize}
+\setbeamertemplate{caption}[numbered]
+\newcommand{\figrel}[2]{\par\vspace{0.12em}{\scriptsize\textbf{Figura #1 --} #2}\par}
+\setbeamertemplate{headline}{}
+
+\makeatletter
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=0.63\paperwidth,ht=3ex,dp=1.1ex]{institute in head/foot}%
+      \scriptsize\hspace{1em}\textbf{\insertshortauthor}
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=0.22\paperwidth,ht=3ex,dp=1.1ex,center]{subsection in head/foot}%
+      \scriptsize\textbf{\eventdate{}}
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=0.15\paperwidth,ht=3ex,dp=1.1ex,center]{institute in head/foot}%
+      \scriptsize\textbf{\insertframenumber/\inserttotalframenumber}
+    \end{beamercolorbox}%
+  }%
+  \vskip0pt%
+}
+\makeatother
+
+
+\newcommand{\smallformula}[1]{{\small\begin{equation*}#1\end{equation*}}}
+
+\begin{document}
+
+%------------------------------------------------
+\begin{frame}[plain]
+\centering
+\vspace{0.4cm}
+{\Large\bfseries Modelagem e Controle do Sistema\\[0.1cm] Massa-Mola-Amortecedor}\par
+\vspace{0.35cm}
+{\normalsize Sistema com $m=8$ kg, $C=2$ N$\cdot$s/m e $K=0{,}5$ N/m}\par
+\vspace{0.55cm}
+{\small\textbf{Felipe Carrancho da Fonseca Rocha}}\par
+\vspace{0.25cm}
+{\small Engenharia de Computação -- Instituto Politécnico do Rio de Janeiro}\par
+{\small Universidade do Estado do Rio de Janeiro}\par
+{\small Disciplina: Modelagem e Controle de Sistemas}\par
+{\small Professor: Prof. Joel Sánchez Domínguez}\par
+\vfill
+\includegraphics[height=3.2em]{Logo-UERJ.png}\hspace{0.9cm}\par
+\vspace{0.35cm}
+{\small Junho de 2026}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Roteiro da apresentação}\includelogo
+\begin{columns}[T]
+\column{0.48\textwidth}
+\tableofcontents[sections={1-4}]
+\column{0.48\textwidth}
+\tableofcontents[sections={5-8}]
+\end{columns}
+\end{frame}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+\section{Problema e Modelagem}
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%------------------------------------------------
+\begin{frame}{Sistema estudado}\includelogo
+\begin{columns}[T]
+\column{0.48\textwidth}
+\begin{block}{Modelo físico}
+Sistema massa-mola-amortecedor com inércia, dissipação viscosa e armazenamento elástico.
+\end{block}
+\vspace{0.3em}
+\begin{itemize}
+  \item Massa: $m=8$ kg
+  \item Amortecimento: $C=2$ N$\cdot$s/m
+  \item Rigidez: $K=0{,}5$ N/m
+  \item Entrada: força externa $f(t)$
+\end{itemize}
+\column{0.48\textwidth}
+\centering
+\includegraphics[width=0.70\linewidth,height=0.52\textheight,keepaspectratio]{imagem_sistema.jpeg}
+\figrel{1}{Representação física do sistema massa-mola-amortecedor.}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Equação diferencial e espaço de estados}\includelogo
+\begin{columns}[T]
+\column{0.48\textwidth}
+\begin{block}{Equação do movimento}
+\smallformula{m\ddot{x}(t)+C\dot{x}(t)+Kx(t)=f(t)}
+\smallformula{8\ddot{x}(t)+2\dot{x}(t)+0{,}5x(t)=f(t)}
+\end{block}
+\column{0.48\textwidth}
+\begin{block}{Forma de primeira ordem}
+\smallformula{\dot{x}(t)=v(t)}
+\smallformula{\dot{v}(t)=\frac{f(t)-C v(t)-K x(t)}{m}}
+\smallformula{\dot{v}(t)=0{,}125f(t)-0{,}25v(t)-0{,}0625x(t)}
+\end{block}
+\end{columns}
+\vspace{0.2em}
+\begin{alertblock}{Parâmetros dinâmicos}
+\centering
+$\omega_n=\sqrt{K/m}=0{,}25$ rad/s \hspace{1cm} $\zeta=\dfrac{C}{2\sqrt{mK}}=0{,}5$ \hspace{1cm} Sistema subamortecido
+\end{alertblock}
+\end{frame}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+\section{Simulações Iniciais}
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%------------------------------------------------
+\begin{frame}{Atividade 1 -- Resposta livre por Euler explícito}\includelogo
+\begin{columns}[T]
+\column{0.32\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.42\textheight,keepaspectratio]{Grafico-questao1-caso1.png}
+\figrel{2}{Caso 1: $V_0=4$, $X_0=0$; pico $8{,}767$ m em $4{,}82$ s.}
+\column{0.32\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.42\textheight,keepaspectratio]{Grafico-questao1-caso2.png}
+\figrel{3}{Caso 2: $V_0=0$, $X_0=2$; mínimo $-0{,}329$ m em $14{,}36$ s.}
+\column{0.32\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.42\textheight,keepaspectratio]{Grafico-questao1-caso3.png}
+\figrel{4}{Caso 3: $V_0=2{,}667$, $X_0=1{,}6$; pico $6{,}781$ m em $4{,}30$ s.}
+\end{columns}
+\vspace{0.1em}
+\begin{block}{Conclusão}
+As respostas oscilam com amplitude decrescente e convergem para $x=0$.
+\end{block}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Atividade 2 -- Modelo em blocos no Xcos}\includelogo
+\begin{columns}[T]
+\column{0.50\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{Diagrama-questao2.png}
+\figrel{5}{Diagrama de blocos da Atividade 2 no Xcos.}
+\column{0.46\textwidth}
+\begin{block}{Entrada constante}
+\smallformula{f(t)=m/5=1{,}6\text{ N}}
+\smallformula{f(t)/m=0{,}2\text{ m/s}^2}
+\end{block}
+\begin{itemize}
+  \item Dois integradores em cascata.
+  \item Realimentação de posição e velocidade.
+  \item Ganhos: $1/m=0{,}125$, $-C/m=-0{,}25$, $-K/m=-0{,}0625$.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Atividade 2 -- Gráficos de posição}\includelogo
+\centering
+\begin{minipage}{0.485\linewidth}\centering
+\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{Grafico-questao2-posicao-caso1.png}\par
+{\tiny Caso 1 -- pico: $t\approx11{,}33$ s; $x\approx30{,}96$ m}
+\end{minipage}\hfill
+\begin{minipage}{0.485\linewidth}\centering
+\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{Grafico-questao2-posicao-caso2.png}\par
+{\tiny Caso 2 -- pico: $t\approx14{,}43$ s; $x\approx29{,}45$ m}
+\end{minipage}
+
+\vspace{0.12em}
+\begin{minipage}{0.485\linewidth}\centering
+\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{Grafico-questao2-posicao-caso3.png}\par
+{\tiny Caso 3 -- pico: $t\approx12{,}06$ s; $x\approx30{,}01$ m}
+\end{minipage}\hfill
+\begin{minipage}{0.485\linewidth}\centering
+\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{Grafico-questao2-posicao-caso4.png}\par
+{\tiny Caso 4 -- pico: $t\approx14{,}61$ s; $x\approx29{,}77$ m}
+\end{minipage}
+\figrel{6}{Gráficos de posição $x(t)$ -- Atividade 2, quatro casos.}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Atividade 2 -- Gráficos de velocidade}\includelogo
+\centering
+\begin{minipage}{0.485\linewidth}\centering
+\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{Grafico-questao2-velocidade-caso1.png}\par
+{\tiny Caso 1 -- pico: $t\approx1{,}65$ s; $\dot{x}\approx4{,}49$ m/s}
+\end{minipage}\hfill
+\begin{minipage}{0.485\linewidth}\centering
+\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{Grafico-questao2-velocidade-caso2.png}\par
+{\tiny Caso 2 -- pico: $t\approx4{,}93$ s; $\dot{x}\approx3{,}22$ m/s}
+\end{minipage}
+
+\vspace{0.12em}
+\begin{minipage}{0.485\linewidth}\centering
+\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{Grafico-questao2-velocidade-caso3.png}\par
+{\tiny Caso 3 -- pico: $t\approx2{,}74$ s; $\dot{x}\approx3{,}71$ m/s}
+\end{minipage}\hfill
+\begin{minipage}{0.485\linewidth}\centering
+\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{Grafico-questao2-velocidade-caso4.png}\par
+{\tiny Caso 4 -- pico: $t\approx4{,}75$ s; $\dot{x}\approx3{,}50$ m/s}
+\end{minipage}
+\figrel{7}{Gráficos de velocidade $\dot{x}(t)$ -- Atividade 2, quatro casos.}
+\end{frame}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+\section{Função de Transferência}
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%------------------------------------------------
+\begin{frame}{Atividade 3 -- Função de transferência da planta}\includelogo
+\begin{columns}[T]
+\column{0.50\textwidth}
+\begin{block}{Transformada de Laplace}
+Com condições iniciais nulas:
+\smallformula{G(s)=\frac{X(s)}{F(s)}=\frac{1}{ms^2+Cs+K}}
+\smallformula{G(s)=\frac{1}{8s^2+2s+0{,}5}}
+\end{block}
+\begin{block}{Polos}
+\smallformula{s=-0{,}125\pm j\,0{,}2165}
+\end{block}
+\column{0.46\textwidth}
+\centering
+\includegraphics[width=0.86\linewidth,height=0.55\textheight,keepaspectratio]{Questao3-resolucao.png}
+\figrel{8}{Saída do console Scilab para função de transferência e polos.}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Resumo dos parâmetros da planta}\includelogo
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{lll}
+\toprule
+\textbf{Grandeza} & \textbf{Expressão} & \textbf{Valor} \\
+\midrule
+Frequência natural & $\omega_n=\sqrt{K/m}$ & $0{,}25$ rad/s \\
+Fator de amortecimento & $\zeta=C/(2\sqrt{mK})$ & $0{,}5$ \\
+Ganho estacionário & $K_p=1/K$ & $2$ \\
+Constante de tempo & $\tau=1/(\zeta\omega_n)$ & $4$ s \\
+Polos & raízes de $8s^2+2s+0{,}5$ & $-0{,}125\pm j0{,}2165$ \\
+Classificação & $0<\zeta<1$ & Subamortecido \\
+\bottomrule
+\end{tabular}
+\vspace{0.6em}
+\begin{alertblock}{Ponto-chave}
+A planta isolada é estável, mas apresenta oscilações amortecidas devido aos polos complexos conjugados.
+\end{alertblock}
+\end{frame}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+\section{Malha Fechada e Estabilidade}
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%------------------------------------------------
+\begin{frame}{Atividade 4 -- Diagrama de controle}\includelogo
+\begin{columns}[T]
+\column{0.58\textwidth}
+\centering
+\includegraphics[width=0.98\linewidth,height=0.90\textheight,keepaspectratio]{Diagrama-questao4.png}
+\figrel{9}{Diagrama de blocos do sistema de controle realimentado.}
+\column{0.38\textwidth}
+\begin{block}{Estrutura analisada}
+\begin{itemize}
+  \item Controlador proporcional $G_c(s)=K$.
+  \item Planta $G_p(s)=1/(8s^2+2s+0{,}5)$.
+  \item Sensor $H(s)=\frac{4}{3}s+1$.
+  \item Realimentação negativa.
+\end{itemize}
+\end{block}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Atividade 4 -- Controle proporcional e sensor}\includelogo
+\begin{columns}[T]
+\column{0.52\textwidth}
+\begin{block}{Malha fechada}
+\smallformula{\frac{C(s)}{R(s)}=\frac{G_c(s)G_p(s)}{1+G_c(s)G_p(s)H(s)}}
+\smallformula{G_c(s)=K=\frac{8}{3},\quad H(s)=\frac{4}{3}s+1}
+\smallformula{\frac{C(s)}{R(s)}=\frac{64s+48}{192s^3+192s^2+48s+57}}
+\end{block}
+\column{0.44\textwidth}
+\begin{block}{Routh-Hurwitz}
+\centering
+\begin{tabular}{c|cc}
+$s^3$ & 192 & 48 \\
+$s^2$ & 192 & 57 \\
+$s^1$ & -9 & 0 \\
+$s^0$ & 57 & 0
+\end{tabular}
+\end{block}
+\begin{alertblock}{Resultado}
+Mudança de sinal na primeira coluna: malha fechada instável para $K=8/3$.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Atividade 4 -- Faixa de estabilidade}\includelogo
+\begin{columns}[T]
+\column{0.47\textwidth}
+\begin{block}{Denominador genérico}
+{\small
+\[
+D(s)=(8s^2+2s+0{,}5)\left(\frac{4}{3}s+1\right)+K
+\]
+}
+\end{block}
+
+\begin{alertblock}{Condição de estabilidade}
+\centering
+$\displaystyle -\frac{1}{2}<K<\frac{13}{6}$
+\end{alertblock}
+
+\begin{itemize}\small
+  \item $K_c=8/3\approx2{,}667$.
+  \item Limite superior: $13/6\approx2{,}167$.
+  \item Como $8/3>13/6$, o ganho nominal fica fora da região estável.
+\end{itemize}
+
+\column{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=0.66\textheight,keepaspectratio]{Questao4-resolucao.png}
+\figrel{10}{Saída do console Scilab para a Atividade 4.}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Atividade 5 -- Diagrama implementado no Xcos}\includelogo
+\begin{columns}[T]
+\column{0.60\textwidth}
+\centering
+\includegraphics[width=0.98\linewidth,height=0.64\textheight,keepaspectratio]{Diagrama-questao5-letrab.png}
+\figrel{11}{Diagrama do sistema em malha fechada implementado no Xcos.}
+\column{0.36\textwidth}
+\begin{block}{Configuração}
+\begin{itemize}
+  \item Entrada degrau $A=m/4=2$.
+  \item Ganho nominal $K_c=8/3$.
+  \item Segundo teste com $2K_c=16/3$.
+\end{itemize}
+\end{block}
+\begin{alertblock}{Objetivo}
+Verificar por simulação a instabilidade prevista em Routh-Hurwitz.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Atividade 5 -- Simulação da instabilidade no Xcos}\includelogo
+\begin{columns}[T]
+\column{0.48\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.42\textheight,keepaspectratio]{Grafico-questao5-.png}
+\figrel{12}{Resposta em malha fechada para ganho nominal $K_c=8/3$.}
+\column{0.48\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.42\textheight,keepaspectratio]{Grafico-questao5-Com-Ganho_Dobrado.png}
+\figrel{13}{Resposta em malha fechada para ganho dobrado $2K_c=16/3$.}
+\end{columns}
+\begin{block}{Interpretação}
+As respostas não convergem. Ao dobrar o ganho, as oscilações aumentam mais rapidamente, confirmando a análise de Routh-Hurwitz.
+\end{block}
+\end{frame}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+\section{Controlador PID}
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%------------------------------------------------
+\begin{frame}{Atividade 6 -- Diagrama com controlador PID}\includelogo
+\begin{columns}[T]
+\column{0.60\textwidth}
+\centering
+\includegraphics[width=0.98\linewidth,height=0.64\textheight,keepaspectratio]{Diagrama-questao6.png}
+\figrel{14}{Diagrama de blocos da malha fechada com controlador PID.}
+\column{0.36\textwidth}
+\begin{block}{Alteração feita}
+O controlador proporcional puro foi substituído por um bloco PID.
+\end{block}
+\begin{itemize}
+  \item Sintonia inicial por Ziegler-Nichols.
+  \item Comparação com ajuste manual.
+  \item Entrada degrau $A=2$.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Atividade 6 -- Sintonia por Ziegler-Nichols}\includelogo
+\begin{columns}[T]
+\column{0.50\textwidth}
+\begin{block}{Ganho e período críticos}
+\smallformula{K_{cr}=\frac{13}{6}\approx2{,}167}
+\smallformula{\omega_{cr}=0{,}5\text{ rad/s}}
+\smallformula{P_{cr}=\frac{2\pi}{\omega_{cr}}\approx12{,}57\text{ s}}
+\end{block}
+\column{0.46\textwidth}
+\begin{block}{PID na forma paralela}
+\smallformula{K_p=0{,}6K_{cr}=1{,}300}
+\smallformula{K_i=K_p\frac{2}{P_{cr}}\approx0{,}207}
+\smallformula{K_d=K_p\frac{P_{cr}}{8}\approx2{,}042}
+\end{block}
+\end{columns}
+\vspace{0.2em}
+\begin{alertblock}{Objetivo do PID}
+Adicionar ações integral e derivativa para deslocar a dinâmica de malha fechada para uma resposta estável.
+\end{alertblock}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Atividade 6 -- Resposta com PID}\includelogo
+\begin{columns}[T]
+\column{0.48\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.43\textheight,keepaspectratio]{Grafico-questao6.png}
+\figrel{15}{Resposta com PID sintonizado por Ziegler-Nichols.}
+\column{0.48\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.43\textheight,keepaspectratio]{Grafico-questao6-PID-ajustado.png}
+\figrel{16}{Resposta com PID ajustado manualmente.}
+\end{columns}
+\begin{block}{Comparação}
+O PID estabiliza a malha; o ajuste manual produz resposta semelhante.
+\end{block}
+\end{frame}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+\section{Análise em Frequência}
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%------------------------------------------------
+\begin{frame}{Atividade 7 -- Lugar Geométrico das Raízes}\includelogo
+\begin{columns}[T]
+\column{0.55\textwidth}
+\centering
+\includegraphics[width=0.92\linewidth,height=0.62\textheight,keepaspectratio]{Grafico-questao7.png}
+\figrel{17}{Lugar Geométrico das Raízes da planta.}
+\column{0.41\textwidth}
+\begin{block}{Resultados principais}
+\begin{itemize}
+  \item Ganho crítico: $K_{cr}=13/6\approx2{,}167$.
+  \item Cruzamento: $s=\pm0{,}5j$.
+  \item Assíntotas: $\pm90^\circ$.
+  \item Centroide: $\sigma=-0{,}125$.
+\end{itemize}
+\end{block}
+\begin{alertblock}{Coerência}
+O LGR confirma graficamente o mesmo limite obtido por Routh-Hurwitz.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}[shrink=6]{Atividade 8 -- Diagrama de Bode}\includelogo
+\begin{columns}[T]
+\column{0.58\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.56\textheight,keepaspectratio]{Grafico-questao8.png}
+\figrel{18}{Diagrama de Bode da planta $G_p(s)$.}
+\column{0.38\textwidth}
+\begin{block}{Pontos destacados}
+\begin{itemize}
+  \item Ganho estacionário: $20\log_{10}(2)=6{,}02$ dB.
+  \item Pico de ressonância em $\omega_r\approx0{,}177$ rad/s.
+  \item Cruzamento de 0 dB em $\omega\approx0{,}379$ rad/s.
+  \item Fase em $\omega_n=0{,}25$ rad/s: $-90^\circ$.
+\end{itemize}
+\end{block}
+\begin{alertblock}{Margens}
+Margem de fase positiva: $MF\approx49{,}35^\circ$.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}[shrink=8]{Atividade 9 -- Diagrama de Nyquist}\includelogo
+\begin{columns}[T]
+\column{0.58\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.58\textheight,keepaspectratio]{Grafico-questao9.png}
+\figrel{19}{Diagrama de Nyquist da planta $G_p(s)$.}
+\column{0.38\textwidth}
+\begin{block}{Critério de Nyquist}
+\begin{itemize}
+  \item A curva é simétrica em relação ao eixo real.
+  \item Inicia próxima de $G(0)=2+j0$.
+  \item Tende à origem em altas frequências.
+  \item O ponto crítico $(-1,j0)$ não é circundado.
+\end{itemize}
+\end{block}
+\begin{alertblock}{Resultado}
+Como $P=0$ e $N=0$, tem-se $Z=0$. A análise confirma estabilidade da planta.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+\section{Identificação de Sistemas}
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%------------------------------------------------
+\begin{frame}{Atividade 10 -- Identificação pela resposta ao degrau}\includelogo
+\begin{columns}[T]
+\column{0.52\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.62\textheight,keepaspectratio]{Grafico-questao10.png}
+\figrel{20}{Resposta ao degrau unitário da função de transferência real.}
+\column{0.44\textwidth}
+\begin{block}{Medições gráficas}
+\begin{itemize}
+  \item Valor final: $y_\infty\approx2{,}000$.
+  \item Pico: $y_{\max}\approx2{,}326$.
+  \item Tempo de pico: $t_p\approx14{,}5$ s.
+  \item Sobressinal: $PO\approx16{,}3\%$.
+\end{itemize}
+\end{block}
+\begin{block}{Parâmetros identificados}
+$\zeta\approx0{,}500$, $\omega_n\approx0{,}250$ rad/s, $K_p\approx2{,}000$.
+\end{block}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Atividade 10 -- Modelo identificado}\includelogo
+\begin{columns}[T]
+\column{0.50\textwidth}
+\begin{block}{Função identificada}
+\smallformula{G_{id}(s)=\frac{K_p\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}}
+\smallformula{G_{id}(s)=\frac{0{,}125}{s^2+0{,}25s+0{,}0625}}
+\smallformula{G_{id}(s)=\frac{1}{8s^2+2s+0{,}5}}
+\end{block}
+\begin{alertblock}{Erro}
+$MSE\approx8{,}2\times10^{-8}$: identificação praticamente perfeita.
+\end{alertblock}
+\column{0.46\textwidth}
+\centering
+\includegraphics[width=0.94\linewidth,height=0.52\textheight,keepaspectratio]{Grafico-questao10-comparacao.png}
+\figrel{21}{Comparação entre a resposta real e a resposta identificada.}
+\end{columns}
+\end{frame}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+\section{Síntese Final}
+%~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%------------------------------------------------
+\begin{frame}{Integração dos resultados}\includelogo
+\renewcommand{\arraystretch}{1.35}
+\setlength{\tabcolsep}{5pt}
+\setlength{\arrayrulewidth}{0.55pt}
+\centering
+\resizebox{0.98\linewidth}{!}{%
+\begin{tabular}{|>{\raggedright\arraybackslash}p{0.20\linewidth}|>{\raggedright\arraybackslash}p{0.33\linewidth}|>{\raggedright\arraybackslash}p{0.37\linewidth}|}
+\hline
+\textbf{Etapa} & \textbf{Resultado principal} & \textbf{Conclusão} \\
+\hline
+\textbf{Modelagem} & $G(s)=1/(8s^2+2s+0{,}5)$ & Planta estável e subamortecida. \\
+\hline
+\textbf{Malha proporcional} & $K_c=8/3>13/6$ & Controle proporcional especificado é instável. \\
+\hline
+\textbf{PID} & $K_p=1{,}300$, $K_i=0{,}207$, $K_d=2{,}042$ & Ações integral e derivativa estabilizam a resposta. \\
+\hline
+\textbf{LGR, Bode e Nyquist} & $K_{cr}=13/6$, $MF\approx49{,}35^\circ$ & Resultados em frequência confirmam a análise temporal. \\
+\hline
+\textbf{Identificação} & $G_{id}(s)\approx G(s)$, $MSE\approx8{,}2\times10^{-8}$ & O modelo foi recuperado com alta precisão. \\
+\hline
+\end{tabular}%
+}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Conclusões}\includelogo
+\begin{itemize}
+  \item O sistema massa-mola-amortecedor foi modelado por EDO, espaço de estados, Xcos e função de transferência.
+  \item A planta isolada é estável e subamortecida, com $\zeta=0{,}5$ e $\omega_n=0{,}25$ rad/s.
+  \item A malha fechada com controlador proporcional $K=8/3$ é instável pelo critério de Routh-Hurwitz e por simulação.
+  \item O método de Ziegler-Nichols forneceu um PID capaz de estabilizar a malha fechada.
+  \item LGR, Bode e Nyquist confirmaram a coerência dos resultados nos domínios do tempo, de Laplace e da frequência.
+  \item A identificação por sobressinal e tempo de pico recuperou praticamente a mesma função de transferência da planta.
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Agradecimentos}\includelogo
+\centering
+\vspace{1cm}
+\vfill
+{\Huge\bfseries Obrigado!}\par
+\vspace{1.2cm}
+\includegraphics[height=5.2em]{Logo-UERJ.png}\par
+\vfill
+\end{frame}
+
+\end{document}

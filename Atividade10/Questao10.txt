@@ -1,0 +1,89 @@
+// =====================================================
+// ATIVIDADE 10 - Identificacao de Sistemas
+// Felipe Carrancho da Fonseca Rocha
+// FT da Atividade 3: G(s) = 1 / (8s² + 2s + 0.5)
+// =====================================================
+
+clc;
+clear;
+
+m = 8; C = 2; K = 0.5;
+s = poly(0, 's');
+
+// FT da Atividade 3
+G = syslin('c', 1/(m*s^2 + C*s + K));
+
+t = 0:0.05:150;
+y_real = csim('step', t, G);
+
+figure(1); clf();
+plot2d(t, y_real, style=2);
+xtitle('Resposta ao Degrau Unitario - G(s) da Atividade 3', 'Tempo (s)', 'Saida y(t)');
+xgrid();
+disp('Grafico 1 gerado: resposta ao degrau unitario da FT real.');
+disp('Use o DataTip para marcar o pico e o estado estacionario.');
+
+
+[ymax, idx] = max(y_real);
+tp = t(idx);
+yinf = y_real($);
+PO = (ymax - yinf) / yinf * 100;
+
+disp(' ');
+disp('=== Parametros medidos no grafico (Passo 2) ===');
+disp(['Valor final yinf      = ' string(yinf)]);
+disp(['Valor de pico ymax    = ' string(ymax)]);
+disp(['Tempo de pico tp      = ' string(tp) ' s']);
+disp(['Sobressinal PO        = ' string(PO) ' %']);
+
+
+disp(' ');
+disp('=== PASSO 3: Calculo dos parametros identificados ===');
+
+PO_frac = PO/100;
+zeta_id = -log(PO_frac) / sqrt(%pi^2 + log(PO_frac)^2);
+wn_id   = %pi / (tp * sqrt(1 - zeta_id^2));
+Kp_id   = yinf;
+
+disp(['zeta_id = -ln(PO/100)/sqrt(pi^2+ln(PO/100)^2) = ' string(zeta_id)]);
+disp(['wn_id   = pi/(tp*sqrt(1-zeta_id^2))            = ' string(wn_id) ' rad/s']);
+disp(['Kp_id   = yinf                                  = ' string(Kp_id)]);
+
+
+Num_id = Kp_id * wn_id^2;
+Den_id = s^2 + 2*zeta_id*wn_id*s + wn_id^2;
+G_id = syslin('c', Num_id/Den_id);
+
+disp(' ');
+disp('=== PASSO 4: Funcao de Transferencia Identificada ===');
+disp('G_id(s) =');
+disp(G_id);
+
+y_id = csim('step', t, G_id);
+
+figure(2); clf();
+plot2d(t, [y_real' y_id'], style=[2 5]);
+legend(['Sistema Real - G(s) Atividade 3'; 'Sistema Identificado - G_id(s)']);
+xtitle('Atividade 10 - Comparacao Real x Identificado', 'Tempo (s)', 'Saida y(t)');
+xgrid();
+disp(' ');
+disp('Grafico 2 gerado: comparacao entre as duas respostas.');
+disp('Use o DataTip para marcar um ponto de cada curva, mostrando');
+disp('que praticamente coincidem.');
+disp(' ');
+disp('=== PASSO 6: Calculo do MSE ===');
+
+N = length(t);
+erro = y_real - y_id;
+erro_quadratico = erro.^2;
+MSE = sum(erro_quadratico) / N;
+
+disp(['Numero de amostras N           = ' string(N)]);
+disp(['Soma dos erros quadraticos     = ' string(sum(erro_quadratico))]);
+disp(['MSE = (1/N)*Sum((y_real-y_id)^2) = ' string(MSE)]);
+
+if MSE < 1e-3 then
+    disp(' ');
+    disp('MSE muito proximo de zero -> o sistema identificado');
+    disp('reproduz com excelente precisao o comportamento real.');
+end
